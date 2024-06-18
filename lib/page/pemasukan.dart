@@ -59,6 +59,13 @@ class _ForegroundState extends State<Foreground> {
   }
 
   @override
+  void initState() async {
+    widget.databaseData!.cekDatabase();
+    setState(() {});
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     double heightBody = MediaQuery.of(context).size.height;
     double bodyAtas = heightBody / 4.8;

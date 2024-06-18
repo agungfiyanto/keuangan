@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconify_flutter/iconify_flutter.dart';
 import 'package:iconify_flutter/icons/majesticons.dart';
+import 'package:keuangan/database/data_model.dart';
+import 'package:keuangan/database/database_data.dart';
 import 'package:keuangan/page/edit.dart';
 import 'package:keuangan/page/pemasukan.dart';
 import 'package:keuangan/page/pengeluaran.dart';
@@ -59,44 +61,105 @@ class _ListDataState extends State<ListData> {
   Widget build(BuildContext context) {
     return Container(
       color: const Color.fromARGB(255, 3, 174, 210),
-      child: Padding(
-        padding: const EdgeInsets.all(40.0),
-        child: Column(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                  color: Colors.white,
-                  border:
-                      Border(bottom: BorderSide(color: Colors.red, width: 2)),
-                  borderRadius: BorderRadius.all(Radius.circular(10))),
-              child: const Padding(
-                padding: EdgeInsets.all(15.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Beli barang",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text("12 Maret 2024")
-                      ],
-                    ),
-                    Text(
-                      "-Rp 20.000",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.red),
-                    )
-                  ],
-                ),
-              ),
-            )
-          ],
-        ),
-      ),
+      child: Padding(padding: const EdgeInsets.all(40.0), child: SemuaData()),
     );
+  }
+}
+
+class SemuaData extends StatefulWidget {
+  const SemuaData({super.key});
+
+  @override
+  State<SemuaData> createState() => _SemuaDataState();
+}
+
+class _SemuaDataState extends State<SemuaData> {
+  DatabaseData? databaseData;
+
+  Future initDatabase() async {
+    await databaseData!.cekDatabase();
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    databaseData = DatabaseData();
+    initDatabase();
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return databaseData == null
+        ? FutureBuilder<List<DataModel>>(
+            future: databaseData!.all(),
+            builder: (context, snapshot) {
+              if (snapshot.data!.length == 0) {
+                return const Center(
+                  child: Text(
+                    "Belum ada data yang ditambahkan",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                );
+              } else if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else {
+                return ListView.builder(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: [
+                        Container(
+                          decoration: const BoxDecoration(
+                              color: Colors.white,
+                              border: Border(
+                                  bottom:
+                                      BorderSide(color: Colors.red, width: 2)),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10))),
+                          child: Padding(
+                            padding: EdgeInsets.all(15.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      snapshot.data![index].keterangan ?? "",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text("${snapshot.data![index].tanggal}")
+                                  ],
+                                ),
+                                Text(
+                                  "${snapshot.data![index].nominal}",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.red),
+                                )
+                              ],
+                            ),
+                          ),
+                        )
+                      ],
+                    );
+                  },
+                );
+              }
+            },
+          )
+        : const Center(
+            child: Text(
+              "Belum ada data yang ditambahkan",
+              style:
+                  TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+          );
   }
 }
 
